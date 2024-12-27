@@ -39,3 +39,4 @@ else {
 Add-Content -Path $PROFILE -Value $RawProfileParsed
     }
 }
+. "$PSScriptRoot\Update-Tools.ps1"
