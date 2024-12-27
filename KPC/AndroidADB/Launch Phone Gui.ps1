@@ -1,4 +1,5 @@
 #PS7
+. $PROFILE
 $ParseOCPath = Get-OCPath
 Set-OCVars -CurrentDir $Env:Current_Dir -SelMultiple $Env:Selected_Files -OpDir $Env:Current_Dir_Inactive
-& (Join-Path $ParseOCPath 'Resources\KPC\Invoke-PhoneGui.ps1')
+. "$ParseOCPath\Resources\KPC\Invoke-PhoneGui.ps1"

@@ -22,7 +22,7 @@ elseif ($OCPath.Contains('Program Files')) {
 else {
 $ParseOCPath = (Get-Item -LiteralPath $OCPath).Directory.FullName
 }
-. (Join-Path $ParseOCPath 'Resources\KPC\Invoke-SharedFunctions.ps1')
+. "$ParseOCPath\Resources\KPC\Invoke-SharedFunctions.ps1"
 '@
 $RawProfileParsed = $RawProfileContent.Replace('$Path',$Path)
 
