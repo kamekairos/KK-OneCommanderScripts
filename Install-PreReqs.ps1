@@ -30,4 +30,4 @@ powershell.exe -NoExit -NoProfile -Command {
     [string]
     $ScriptRootPar
     )
-    pwsh.exe -NoExit -File "$ScriptRootPar\Install.ps1"} -Args $scriptroot
+    powershell.exe -NoExit -File "$ScriptRootPar\Install.ps1"} -Args $scriptroot

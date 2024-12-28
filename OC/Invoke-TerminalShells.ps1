@@ -31,13 +31,13 @@ $okButton.Dock = "Bottom"
 $mainForm.Controls.Add($listBox)
 $mainForm.Controls.Add($okButton)
 
-$Global:LaunchTerminalCmd = {
+$Script:LaunchTerminalCmd = {
     $CurGuid = $promptGuids[$listBox.SelectedIndex]
     wt -p $CurGuid -d $OCVars.CurrentDir
     $mainForm.Close() | Out-Null
 }
 
-$okButton.Add_Click($Global:LaunchTerminalCmd)
+$okButton.Add_Click($Script:LaunchTerminalCmd)
 
 
 $mainForm.ShowDialog() | Out-Null

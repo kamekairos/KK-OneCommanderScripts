@@ -1,6 +1,13 @@
 New-Item -Path "$PSScriptRoot\Export\" -ItemType Directory -Force
 $Path = "$PSScriptRoot\Export\"
-$ProfileContents = Get-Content -Path $PROFILE -Raw
+$OCPROFILEPATH = Join-Path (Get-Item ((Get-Command OneCommander.exe).Path)).Directory '\Settings\OneCommanderProfile.ps1'
+if (Test-Path $OCPROFILEPATH) {
+$OCPROFILEPATHContents = Get-Content -Path $OCPROFILEPATH -Raw
+}
+else{
+    New-Item -Path $OCPROFILEPATH -ItemType File -Value "#This is the beginning of the OCPROFILE file..."
+    $OCPROFILEPATHContents = Get-Content -Path $OCPROFILEPATH -Raw
+}
 $RawProfileContent = @'
 #KPC-Integrations Script Pack For OneCommander Profile Code...don't remove this unless you want to reinstall after breaking the scripts(some).
 if (Test-Path -Path $Path\CusPSVars.xml) {
@@ -26,17 +33,8 @@ $ParseOCPath = (Get-Item -LiteralPath $OCPath).Directory.FullName
 '@
 $RawProfileParsed = $RawProfileContent.Replace('$Path',$Path)
 
-if (Test-Path $PROFILE) {
-    if (!($ProfileContents.Contains($RawProfileParsed))) {
-Add-Content -Path $PROFILE -Value ""
-Add-Content -Path $PROFILE -Value $RawProfileParsed
+if (!($OCPROFILEPATHContents.Contains($RawProfileParsed))) {
+    Add-Content -Path $OCPROFILEPATH -Value ""
+    Add-Content -Path $OCPROFILEPATH -Value $RawProfileParsed
     }
-}
-else {
-    New-Item -Path $PROFILE -Value $null -ItemType File -Force
-    if ($ProfileContents -notcontains $RawProfileParsed) {
-    Add-Content -Path $PROFILE -Value ""
-Add-Content -Path $PROFILE -Value $RawProfileParsed
-    }
-}
 . "$PSScriptRoot\Update-Tools.ps1"

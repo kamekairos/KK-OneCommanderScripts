@@ -1,4 +1,4 @@
-[CmdletBinding()]
+function Show-CustomDialog {
 param (
     [Parameter(Position=0)]
     [string]
@@ -21,3 +21,4 @@ $MBResults = [System.Windows.Forms.MessageBox]::Show($PromptText, $Title, [Syste
 
 return $MBResults
 
+}
