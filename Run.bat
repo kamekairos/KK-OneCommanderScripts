@@ -1,0 +1,1 @@
+powershell.exe -NoProfile -File "%~dp0Install-PreReqs.ps1"

@@ -93,15 +93,15 @@ $resultsButton.Location = New-Object System.Drawing.Size(100, 850)
 $resultsButton.Text = "Clear Data"
 
 $buttonSB = {
-    $Global:Args1 = @()
+    $Script:Args1 = @()
     if ($checkbox1.Checked -and $checkbox2.Checked) {
-        $Global:Args1 = "-d", "shell", "pm", "list", "packages", "-a", "-f"
+        $Script:Args1 = "-d", "shell", "pm", "list", "packages", "-a", "-f"
     }
     if ($checkbox1.Checked -and !($checkbox2.Checked)) {
-        $Global:Args1 = "-d", "shell", "pm", "list", "packages", "-3", "-f"
+        $Script:Args1 = "-d", "shell", "pm", "list", "packages", "-3", "-f"
     }
     if (!($checkbox1.Checked) -and $checkbox2.Checked) {
-        $Global:Args1 = "-d", "shell", "pm", "list", "packages", "-s", "-f"
+        $Script:Args1 = "-d", "shell", "pm", "list", "packages", "-s", "-f"
     }
     $NewLineSplitPackages = & "$PSScriptRoot\Tools\adb.exe" @Args1
     $ParsedADBPaths = @()
@@ -133,16 +133,16 @@ $buttonSB = {
         $progressBar2.Increment(1)
     }
     $SortedApksByCommonName = $CommonNames.GetEnumerator() | Sort-Object -Property Value
-    $Global:Results = $SortedApksByCommonName | Out-GridView -Title "Apks & Names" -OutputMode Multiple
+    $Script:Results = $SortedApksByCommonName | Out-GridView -Title "Apks & Names" -OutputMode Multiple
     
 
-    foreach ($result in $Global:Results) {
+    foreach ($result in $Script:Results) {
         $resultsListBox.Items.Add($result.Value)
     }
 }
 $resultButtonSB = {
     $SelectFolder = New-Object System.Windows.Forms.FolderBrowserDialog
-    foreach ($result in $Global:Results) {
+    foreach ($result in $Script:Results) {
         if ($resultsCheckBox1.Checked) {
             $uninstallArgs = "uninstall", "$($result.Key)"
             & "$PSScriptRoot\Tools\adb.exe" @uninstallArgs
