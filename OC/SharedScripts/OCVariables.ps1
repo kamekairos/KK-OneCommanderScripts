@@ -1,6 +1,6 @@
 function Set-OCVars {
     param(
-    [Parameter(Mandatory = $true,
+    [Parameter(Mandatory = $false,
         HelpMessage = 'OC Current Directory Variable/Path ($CurrentDir)')]
     [string]
     $CurrentDir,

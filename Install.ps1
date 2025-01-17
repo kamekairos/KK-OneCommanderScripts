@@ -30,8 +30,8 @@ $OCProfilePathContents = Get-Content -Path $OCProfilePath -Raw
 }
 $RawProfileContent = @'
 #KPC-Integrations Script Pack For OneCommander Profile Code...don't remove this unless you want to reinstall after breaking the scripts(some).
-if (Test-Path -Path $Path\CusPSVars.xml) {
-$CustomVariables = Import-Clixml -Path "$Path\CusPSVars.xml"
+if (Test-Path -Path `"$PathCusPSVars.xml`") {
+$CustomVariables = Import-Clixml -Path `"$PathCusPSVars.xml`"
 $CustomVariables.GetEnumerator() | ForEach-Object -Process { New-Variable -Name $_.Name -Value $_.Value -Option AllScope -Scope Global -Force }
 }
 else {
