@@ -57,14 +57,8 @@ if ($OCProfilePathContents -notcontains $RawProfileParsed) {
     Add-Content -Path $OCProfilePath -Value ""
     Add-Content -Path $OCProfilePath -Value $RawProfileParsed
     }
-
-$WindowsPSProfilePath = powershell.exe -NoProfile -Command {$PROFILE}
-Add-Content -Path $WindowsPSProfilePath -Value ""
-Add-Content -Path $WindowsPSProfilePath -Value ". $OCProfilePath"
 if (Get-Command "pwsh.exe") {
-    $PS7ProfilePath = pwsh.exe -NoProfile -Command {$PROFILE}
-    Add-Content -Path $PS7ProfilePath -Value ""
-    Add-Content -Path $PS7ProfilePath -Value ". $OCProfilePath"
+   # [System.Environment]::SetEnvironmentVariable("PS7_PROFILE_PATH",$OCProfilePath,[System.EnvironmentVariableTarget]::Machine)
 }
 
 $AlteredScriptExecutorsJson = @'
@@ -73,13 +67,13 @@ $AlteredScriptExecutorsJson = @'
     "Executable": "powershell.exe",
     "HeaderTags": "#PS",
     "Extensions": "ps1",
-    "Arguments": "-NoExit -File \"SCRIPT_PATH\""
+    "Arguments": "-NoExit -File $OCProfilePath -Command {& \"SCRIPT_PATH\""}
   },
   {
     "Executable": "pwsh.exe",
     "HeaderTags": "#PS7,#PWSH",
     "Extensions": "ps1",
-    "Arguments": "-NoExit -File \"SCRIPT_PATH\""
+    "Arguments": "-NoExit -File $OCProfilePath -Command {& \"SCRIPT_PATH\""}
   },
   {
     "Executable": "wt.exe",
@@ -101,4 +95,7 @@ $AlteredScriptExecutorsJson = @'
   }
 ]
 '@
-Set-Content "$OCSettingsPath\ScriptExecutors.json" -Value $AlteredScriptExecutorsJson -Force
+$FinSEJson = $AlteredScriptExecutorsJson.Replace('$OCProfilePath',$OCProfilePath)
+Set-Content "$OCSettingsPath\ScriptExecutors.json" -Value $FinSEJson -Force
+
+. "$KPCResourcePath\Update-Tools.ps1"
