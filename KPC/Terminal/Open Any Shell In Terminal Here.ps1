@@ -1,6 +1,44 @@
 #PS7
-$ParseOCPath = Get-OCPath
+try {
+    $wtContentJson = Get-Content -Path "$env:LOCALAPPDATA\Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState\settings.json" -ErrorAction Stop
+}
+catch {
+    $wtContentJson = Get-Content -Path "$env:LOCALAPPDATA\Packages\Microsoft.WindowsTerminalPreview_8wekyb3d8bbwe\LocalState\settings.json"
+}
+$CurDir = $env:CURRENT_DIR
+$wtContentObj = $wtContentJson | ConvertFrom-Json
+$promptGuids = $wtContentObj.profiles.list.guid
+$promptNames = $wtContentObj.profiles.list.name
 
-Set-OCVars -CurrentDir $env:Current_Dir -SelMultiple $env:Selected_Files -OpDir $Env:Current_Dir_Inactive -OpSelMultiple $Env:Selected_Files_Inactive
+Add-Type -AssemblyName System.Windows.Forms
+Add-Type -AssemblyName System.Drawing
 
-pwsh.exe -File "$ParseOCPath\Resources\KPC\Invoke-TerminalShells.ps1"
+$mainForm = New-Object System.Windows.Forms.Form
+$mainForm.Size = New-Object System.Drawing.Size(500,850)
+$mainForm.StartPosition = "CenterScreen"
+
+$listBox = New-Object System.Windows.Forms.ListBox
+$listBox.Size = New-Object System.Drawing.Size(425,650)
+$listBox.Location = New-Object System.Drawing.Size(25,25)
+foreach ($promptName in $promptNames) {
+$listBox.Items.Add($promptName) | Out-Null
+}
+
+$okButton = New-Object System.Windows.Forms.Button
+$okButton.Text = "Launch Prompt"
+$okButton.Size = New-Object System.Drawing.Size(100,50)
+$okButton.Dock = "Bottom"
+
+$mainForm.Controls.Add($listBox)
+$mainForm.Controls.Add($okButton)
+
+$Script:LaunchTerminalCmd = {
+    $CurGuid = $promptGuids[$listBox.SelectedIndex]
+    wt -p $CurGuid -d $CurDir
+    $mainForm.Close() | Out-Null
+}
+
+$okButton.Add_Click($Script:LaunchTerminalCmd)
+
+
+$mainForm.ShowDialog() | Out-Null
