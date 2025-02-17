@@ -1,5 +1,5 @@
 #PS7
-Add-Type -Path "C:\Users\nroot\Downloads\microsoft.windows.sdk.net.ref.10.0.26100.57\lib\net8.0\Microsoft.Windows.SDK.NET.dll"
+Add-Type -Path "$PSScriptRoot\..\..\..\KPC\Tools\Microsoft.Windows.SDK.NET.dll"
 Add-Type -AssemblyName System.Windows.Forms
 Add-Type -AssemblyName System.Drawing
 
@@ -61,18 +61,13 @@ foreach($item in $listy) {
 $listbox.Items.Add($item)
 }
 $listbox.Height = (($listbox.ItemHeight + 5) * $listbox.Items.Count) + 100
-$listbox.Width = $button1.Width
-#$listbox.HorizontalExtent = $button1.Width
 $listbox.HorizontalScrollbar = $true
-#$listbox.ScrollAlwaysVisible = $true
 $listbox.BackColor = [System.Drawing.Color]::FromArgb(57, 57, 57)
 $listbox.ForeColor = "White"
 $listbox.BorderStyle = [System.Windows.Forms.BorderStyle]::None
 $padding2 = $listbox.Padding
 $padding2.All = 15
 $listbox.Padding = $padding2
-
-$textbox = New-Object System.Windows.Forms.TextBox
 
 $button1 = New-Object System.Windows.Forms.Button
 $button1.Text = "Rename"
