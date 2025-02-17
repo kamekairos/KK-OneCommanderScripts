@@ -30,26 +30,16 @@ $OCProfilePathContents = Get-Content -Path $OCProfilePath -Raw
 }
 $RawProfileContent = @'
 #KPC-Integrations Script Pack For OneCommander Profile Code...don't remove this unless you want to reinstall after breaking the scripts(some).
-if (Test-Path -Path `"$PathCusPSVars.xml`") {
-$CustomVariables = Import-Clixml -Path `"$PathCusPSVars.xml`"
+if (Test-Path -Path "$PathCusPSVars.xml") {
+$CustomVariables = Import-Clixml -Path "$PathCusPSVars.xml"
 $CustomVariables.GetEnumerator() | ForEach-Object -Process { New-Variable -Name $_.Name -Value $_.Value -Option AllScope -Scope Global -Force }
 }
-else {
+if ($null -eq $CustomVariables) {
     $example = @{}
     $example.Add("ExampleVarPath","C:\Windows\System32\drivers\etc\")
     $example | Export-Clixml -Path "$Path\CusPSVars.xml" -Force
 }
-$OCPath = (Get-Process OneCommander | Select-Object -First 1).Path
-if ($OCPath.Contains('WindowsApp')) {
-    $ParseOCPath = (Join-Path $Env:USERPROFILE '\OneCommander\')
-}
-elseif ($OCPath.Contains('Program Files')) {
-    $ParseOCPath = (Join-Path $Env:LOCALAPPDATA '\OneCommander\')
-}
-else {
-$ParseOCPath = (Get-Item -LiteralPath $OCPath).Directory.FullName
-}
-. "$ParseOCPath\Resources\KPC\Invoke-SharedFunctions.ps1"
+. "$PSSCriptRoot\..\Resources\KPC\Invoke-SharedFunctions.ps1"
 '@
 $RawProfileParsed = $RawProfileContent.Replace('$Path',$Path)
 
@@ -57,9 +47,17 @@ if ($OCProfilePathContents -notcontains $RawProfileParsed) {
     Add-Content -Path $OCProfilePath -Value ""
     Add-Content -Path $OCProfilePath -Value $RawProfileParsed
     }
-if (Get-Command "pwsh.exe") {
-   # [System.Environment]::SetEnvironmentVariable("PS7_PROFILE_PATH",$OCProfilePath,[System.EnvironmentVariableTarget]::Machine)
+
+$OCProfileContent = @'
+. "$DetectedScriptsFolder\..\..\Settings\OneCommanderProfile.ps1"
+'@    
+$OCProfileContentParsed = $OCProfileContent.Replace('$DetectedScriptsFolder',$DetectedScriptsFolder)
+if ($PROFILE -notcontains $OCProfileContent) {
+    Add-Content -Path $PROFILE -Value $OCProfileContentParsed
+    $PS7PROFILE = $PROFILE.Replace("WindowsPowerShell","PowerShell")
+    Add-Content -Path $PS7PROFILE -Value $OCProfileContentParsed
 }
+
 
 $AlteredScriptExecutorsJson = @'
 [
