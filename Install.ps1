@@ -98,4 +98,4 @@ $AlteredScriptExecutorsJson = @'
 $FinSEJson = $AlteredScriptExecutorsJson.Replace('$OCProfilePath',$OCProfilePath)
 Set-Content "$OCSettingsPath\ScriptExecutors.json" -Value $FinSEJson -Force
 
-. "$KPCResourcePath\Update-Tools.ps1"
+#. "$KPCResourcePath\Update-Tools.ps1"
