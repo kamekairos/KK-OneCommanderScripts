@@ -1,9 +1,9 @@
+#PS7
 Add-Type -AssemblyName System.Windows.Forms
 Add-Type -AssemblyName System.Drawing
 
-$OCVars = Get-OCVars
-$CurDir = $OCVars.CurrentDir
-$OpDir = $OCVars.OpDir
+$CurDir = $env:CURRENT_DIR
+$OpDir = $Env:Current_Dir_Inactive
 
 $FolderPathDialog = New-Object System.Windows.Forms.FolderBrowserDialog
 $FolderPathDialog.Description = "Choose A Destination Path To Merge Both Panes Into"

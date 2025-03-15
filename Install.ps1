@@ -65,13 +65,13 @@ $AlteredScriptExecutorsJson = @'
     "Executable": "powershell.exe",
     "HeaderTags": "#PS",
     "Extensions": "ps1",
-    "Arguments": "-NoExit -File $OCProfilePath -Command {& \"SCRIPT_PATH\""}
+    "Arguments": "-NoExit -File \"SCRIPT_PATH\""
   },
   {
     "Executable": "pwsh.exe",
     "HeaderTags": "#PS7,#PWSH",
     "Extensions": "ps1",
-    "Arguments": "-NoExit -File $OCProfilePath -Command {& \"SCRIPT_PATH\""}
+    "Arguments": "-NoExit -File \"SCRIPT_PATH\""
   },
   {
     "Executable": "wt.exe",
