@@ -1,5 +1,5 @@
 #PS7
-Add-Type -Path "$PSScriptRoot\..\..\..\KPC\Tools\Microsoft.Windows.SDK.NET.dll"
+Add-Type -Path "$PSScriptRoot\..\..\..\KK\Tools\Microsoft.Windows.SDK.NET.dll"
 Add-Type -AssemblyName System.Windows.Forms
 Add-Type -AssemblyName System.Drawing
 

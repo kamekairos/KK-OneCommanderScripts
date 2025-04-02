@@ -12,13 +12,13 @@ elseif ($OCEXEDirPath.Contains("Program Files")) {
 else {
 $DetectedScriptsFolder = "$OCEXEDirPath\Resources\Scripts\"
 }
-$KPCResourcePath = "$DetectedScriptsFolder\..\KPC\"
+$KKResourcePath = "$DetectedScriptsFolder\..\KK\"
 taskkill.exe /IM "adb.exe" /F
 New-Item -Path $DetectedScriptsFolder -ItemType Directory -Force
-New-Item -Path $KPCResourcePath -ItemType Directory -Force
-Copy-Item -Recurse -Path  "$PSScriptRoot\KPC\" -Destination $DetectedScriptsFolder -Force
-Copy-Item -Recurse -Path "$PSScriptRoot\OC\*" -Destination $KPCResourcePath -Force
-$Path = Join-Path $DetectedScriptsFolder "..\KPC\Export\"
+New-Item -Path $KKResourcePath -ItemType Directory -Force
+Copy-Item -Recurse -Path  "$PSScriptRoot\KK\" -Destination $DetectedScriptsFolder -Force
+Copy-Item -Recurse -Path "$PSScriptRoot\OC\*" -Destination $KKResourcePath -Force
+$Path = Join-Path $DetectedScriptsFolder "..\KK\Export\"
 New-Item -Path $Path -ItemType Directory -Force
 $OCSettingsPath = "$OCEXEDirPath\Settings\"
 $OCProfilePath = "$OCSettingsPath\OneCommanderProfile.ps1"
@@ -29,7 +29,7 @@ else {
 $OCProfilePathContents = Get-Content -Path $OCProfilePath -Raw
 }
 $RawProfileContent = @'
-#KPC-Integrations Script Pack For OneCommander Profile Code...don't remove this unless you want to reinstall after breaking the scripts(some).
+#KK-Integrations Script Pack For OneCommander Profile Code...don't remove this unless you want to reinstall after breaking the scripts(some).
 if (Test-Path -Path "$PathCusPSVars.xml") {
 $CustomVariables = Import-Clixml -Path "$PathCusPSVars.xml"
 $CustomVariables.GetEnumerator() | ForEach-Object -Process { New-Variable -Name $_.Name -Value $_.Value -Option AllScope -Scope Global -Force }
@@ -39,7 +39,7 @@ if ($null -eq $CustomVariables) {
     $example.Add("ExampleVarPath","C:\Windows\System32\drivers\etc\")
     $example | Export-Clixml -Path "$Path\CusPSVars.xml" -Force
 }
-. "$PSSCriptRoot\..\Resources\KPC\Invoke-SharedFunctions.ps1"
+. "$PSSCriptRoot\..\Resources\KK\Invoke-SharedFunctions.ps1"
 '@
 $RawProfileParsed = $RawProfileContent.Replace('$Path',$Path)
 
@@ -96,4 +96,4 @@ $AlteredScriptExecutorsJson = @'
 $FinSEJson = $AlteredScriptExecutorsJson.Replace('$OCProfilePath',$OCProfilePath)
 Set-Content "$OCSettingsPath\ScriptExecutors.json" -Value $FinSEJson -Force
 
-#. "$KPCResourcePath\Update-Tools.ps1"
+#. "$KKResourcePath\Update-Tools.ps1"
