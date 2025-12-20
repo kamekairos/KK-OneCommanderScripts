@@ -133,3 +133,5 @@ else {
     $testDotNetSDK = $false
 }
 . "$KKResourcePath\Update-Tools.ps1" -SkipADB:$testADB -SkipAAPT2:$testAppt2 -SkipDotNetSDKRef:$testDotNetSDK
+
+Copy-Item -Path "$KKResourcePath\OC\Tools" -Destination $DetectedScriptsFolder\Tools -Recurse -Force

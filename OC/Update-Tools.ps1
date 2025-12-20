@@ -49,6 +49,6 @@ else {
     Write-Host "Skipping .NET SDK Reference Install..."
 }
 
-
+[System.Environment]::SetEnvironmentVariable("PATH", $env:PATH + ";$PSScriptRoot\Tools", [System.EnvironmentVariableTarget]::User)
 
 
