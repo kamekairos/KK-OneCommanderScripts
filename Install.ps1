@@ -52,12 +52,27 @@ $OCProfileContent = @'
 . "$DetectedScriptsFolder\..\..\Settings\OneCommanderProfile.ps1"
 '@    
 $OCProfileContentParsed = $OCProfileContent.Replace('$DetectedScriptsFolder',$DetectedScriptsFolder)
+if ($PROFILE) {
 if ($PROFILE -notcontains $OCProfileContent) {
     Add-Content -Path $PROFILE -Value $OCProfileContentParsed
     $PS7PROFILE = $PROFILE.Replace("WindowsPowerShell","PowerShell")
     Add-Content -Path $PS7PROFILE -Value $OCProfileContentParsed
 }
-
+else { # Profile already contains the content, do nothing.
+    Write-Host "PowerShell profile already contains OneCommanderProfile.ps1 reference. No changes made."
+}
+else {
+    Write-Host "Windows PowerShell has no profile file set..Would you like to create one now? (Y/N)"
+    $CreateProfile = Read-Host -Prompt "(Y/N)"
+    if ($CreateProfile -eq "Y") {
+        New-Item -Path $PROFILE -ItemType File -Force
+        Add-Content -Path $PROFILE -Value $OCProfileContentParsed
+    }
+    else {
+      Write-Host "Profile Not Created!"
+    }
+}
+}
 
 $AlteredScriptExecutorsJson = @'
 [
@@ -96,4 +111,25 @@ $AlteredScriptExecutorsJson = @'
 $FinSEJson = $AlteredScriptExecutorsJson.Replace('$OCProfilePath',$OCProfilePath)
 Set-Content "$OCSettingsPath\ScriptExecutors.json" -Value $FinSEJson -Force
 
-#. "$KKResourcePath\Update-Tools.ps1"
+if ({. adb devices} -ne $null) {
+    Write-Host "ADB Detected on System PATH...Skipping ADB Install"
+    $testADB = $true
+}
+else {
+    $testADB = $false
+}
+if ({. appt2 help} -ne $null) {
+    Write-Host "Appt2 Detected on System PATH...Skipping Install"
+    $testappt2 = $true
+}
+else {
+    $testAppt2 = $false
+}
+if ({. dotnet --list-sdks} -ne $null) {
+    Write-Host ".NET SDK Detected on System PATH...Skipping .NET SDK Ref Install"
+    $testDotNetSDK = $true
+}
+else {
+    $testDotNetSDK = $false
+}
+. "$KKResourcePath\Update-Tools.ps1" -SkipADB:$testADB -SkipAAPT2:$testAppt2 -SkipDotNetSDKRef:$testDotNetSDK

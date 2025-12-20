@@ -1,17 +1,54 @@
-$platformToolsUpdateUrl = "https://dl.google.com/android/repository/platform-tools-latest-windows.zip"
+param (
+    [Parameter(Mandatory = $true,
+        HelpMessage = 'Skipping ADB Install If True')]
+        [switch]
+        $SkipADB,
+    [Parameter(Mandatory = $true,
+        HelpMessage = 'Skip Appt2.exe Install If True')]
+    [switch]
+    $SkipAAPT2,
+    [Parameter(Mandatory = $true,
+        HelpMessage = 'Skip dotnet.exe Install If True')]
+    [string]
+    $SkipDotNetSDKRef
+)
+
+if (-not $SkipADB) {
+    Write-Host "Installing ADB..."
+    $platformToolsUpdateUrl = "https://dl.google.com/android/repository/platform-tools-latest-windows.zip"
 Invoke-WebRequest -Uri $platformToolsUpdateUrl -OutFile "$env:TEMP\platform-tools.zip"
 Expand-Archive -Path "$env:TEMP\platform-tools.zip" -DestinationPath "$env:TEMP" -Force
 Get-ChildItem -Path "$env:TEMP\platform-tools\*adb*" | Copy-Item -Destination "$PSScriptRoot\Tools\" -Force
+}
+else {
+    Write-Host "Skipping ADB Install..."
+}
 
-$NETSDKRefUpdateUrl = "https://www.nuget.org/api/v2/package/Microsoft.Windows.SDK.NET.Ref"
-Invoke-WebRequest -Uri $NETSDKRefUpdateUrl -OutFile "$env:TEMP\Microsoft.Windows.SDK.NET.Ref.zip"
-Expand-Archive -Path "$env:TEMP\Microsoft.Windows.SDK.NET.Ref.zip" -DestinationPath "$env:TEMP\Microsoft.Windows.SDK.NET.Ref\" -Force
-Get-ChildItem -Path "$env:TEMP\Microsoft.Windows.SDK.NET.Ref\lib\net8.0\Microsoft.Windows.SDK.NET.dll" | Copy-Item -Destination "$PSScriptRoot\Tools\" -Force
-Get-ChildItem -Path "$env:TEMP\Microsoft.Windows.SDK.NET.Ref\lib\net8.0\WinRT.Runtime.dll" | Copy-Item -Destination "$PSScriptRoot\Tools\" -Force
-
-$AAPT2TarUrl = "https://android.googlesource.com/platform/prebuilts/sdk/+archive/refs/heads/main/tools/windows/bin.tar.gz"
+if (-not $SkipAAPT2) {
+    Write-Host "Installing AAPT2..."
+    $AAPT2TarUrl = "https://android.googlesource.com/platform/prebuilts/sdk/+archive/refs/heads/main/tools/windows/bin.tar.gz"
 Invoke-WebRequest -Uri $AAPT2TarUrl -OutFile "$env:TEMP\prebuilttools.tar.gz"
 $SRB4 = $PSScriptRoot
 Set-Location $env:TEMP
 tar -xf "$env:TEMP\prebuilttools.tar.gz"
 Copy-Item -Path "$env:TEMP\aapt2.exe" -Destination "$SRB4\Tools\aapt2.exe" -Force
+}
+else {
+    Write-Host "Skipping AAPT2 Install..."
+}
+
+if (-not $SkipDotNetSDKRef) {
+    Write-Host "Installing .NET SDK Reference..."
+    $NETSDKRefUpdateUrl = "https://www.nuget.org/api/v2/package/Microsoft.Windows.SDK.NET.Ref"
+Invoke-WebRequest -Uri $NETSDKRefUpdateUrl -OutFile "$env:TEMP\Microsoft.Windows.SDK.NET.Ref.zip"
+Expand-Archive -Path "$env:TEMP\Microsoft.Windows.SDK.NET.Ref.zip" -DestinationPath "$env:TEMP\Microsoft.Windows.SDK.NET.Ref\" -Force
+Get-ChildItem -Path "$env:TEMP\Microsoft.Windows.SDK.NET.Ref\lib\net*\Microsoft.Windows.SDK.NET.dll" | Copy-Item -Destination "$PSScriptRoot\Tools\" -Force
+Get-ChildItem -Path "$env:TEMP\Microsoft.Windows.SDK.NET.Ref\lib\net8.0\WinRT.Runtime.dll" | Copy-Item -Destination "$PSScriptRoot\Tools\" -Force
+}
+else {
+    Write-Host "Skipping .NET SDK Reference Install..."
+}
+
+
+
+
