@@ -1,5 +1,5 @@
-#PS7
-$Files = $env:SELECTED_FILES -split "`r`n"
+ $folder = $Env:Current_DIR
+ $Files = Get-ChildItem -Path $folder -Recurse -File | Select-Object -ExpandProperty FullName -split "`r`n"
 $Files | ForEach-Object {
-    Unblock-File -Path $_
+    Unblock-File -LiteralPath $_
 }
