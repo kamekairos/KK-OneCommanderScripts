@@ -1,16 +1,12 @@
 param (
     [Parameter(Mandatory = $true,
         HelpMessage = 'Skipping ADB Install If True')]
-        [switch]
+        [System.Boolean]
         $SkipADB,
     [Parameter(Mandatory = $true,
         HelpMessage = 'Skip Appt2.exe Install If True')]
-    [switch]
-    $SkipAAPT2,
-    [Parameter(Mandatory = $true,
-        HelpMessage = 'Skip dotnet.exe Install If True')]
-    [string]
-    $SkipDotNetSDKRef
+    [System.Boolean]
+    $SkipAAPT2
 )
 
 if (-not $SkipADB) {
@@ -36,18 +32,13 @@ Copy-Item -Path "$env:TEMP\aapt2.exe" -Destination "$SRB4\Tools\aapt2.exe" -Forc
 else {
     Write-Host "Skipping AAPT2 Install..."
 }
-
-if (-not $SkipDotNetSDKRef) {
     Write-Host "Installing .NET SDK Reference..."
     $NETSDKRefUpdateUrl = "https://www.nuget.org/api/v2/package/Microsoft.Windows.SDK.NET.Ref"
 Invoke-WebRequest -Uri $NETSDKRefUpdateUrl -OutFile "$env:TEMP\Microsoft.Windows.SDK.NET.Ref.zip"
 Expand-Archive -Path "$env:TEMP\Microsoft.Windows.SDK.NET.Ref.zip" -DestinationPath "$env:TEMP\Microsoft.Windows.SDK.NET.Ref\" -Force
 Get-ChildItem -Path "$env:TEMP\Microsoft.Windows.SDK.NET.Ref\lib\net*\Microsoft.Windows.SDK.NET.dll" | Copy-Item -Destination "$PSScriptRoot\Tools\" -Force
-Get-ChildItem -Path "$env:TEMP\Microsoft.Windows.SDK.NET.Ref\lib\net8.0\WinRT.Runtime.dll" | Copy-Item -Destination "$PSScriptRoot\Tools\" -Force
-}
-else {
-    Write-Host "Skipping .NET SDK Reference Install..."
-}
+Get-ChildItem -Path "$env:TEMP\Microsoft.Windows.SDK.NET.Ref\lib\net*\WinRT.Runtime.dll" | Copy-Item -Destination "$PSScriptRoot\Tools\" -Force
+
 
 [System.Environment]::SetEnvironmentVariable("PATH", $env:PATH + ";$PSScriptRoot\Tools", [System.EnvironmentVariableTarget]::User)
 

@@ -111,27 +111,29 @@ $AlteredScriptExecutorsJson = @'
 $FinSEJson = $AlteredScriptExecutorsJson.Replace('$OCProfilePath',$OCProfilePath)
 Set-Content "$OCSettingsPath\ScriptExecutors.json" -Value $FinSEJson -Force
 
-if ({. adb devices} -ne $null) {
+$UpdateTools = Read-Host -Prompt "Update Tool Utilities and Libraries Now? (Y/N)"
+
+if ($UpdateTools -eq "Y") {
+
+New-Item -Path "$KKResourcePath\Tools" -ItemType Directory -Force
+
+if ($null -ne (Get-Command adb -ErrorAction SilentlyContinue).Path) {
     Write-Host "ADB Detected on System PATH...Skipping ADB Install"
     $testADB = $true
+    Copy-Item -Path (Get-Command adb).Path -Destination "$KKResourcePath\Tools\adb.exe" -Force
 }
 else {
     $testADB = $false
 }
-if ({. appt2 help} -ne $null) {
-    Write-Host "Appt2 Detected on System PATH...Skipping Install"
-    $testappt2 = $true
+if ($null -ne (Get-Command aapt2).Path) {
+    Write-Host "Aapt2 Detected on System PATH...Skipping Install"
+    $Script:testAapt2 = $true
 }
 else {
-    $testAppt2 = $false
+    $Script:testAapt2 = $false
 }
-if ({. dotnet --list-sdks} -ne $null) {
-    Write-Host ".NET SDK Detected on System PATH...Skipping .NET SDK Ref Install"
-    $testDotNetSDK = $true
+. "$KKResourcePath\Update-Tools.ps1" -SkipADB:$testADB -SkipAAPT2:$Script:testAapt2
 }
 else {
-    $testDotNetSDK = $false
+  Write-Host "Skipping Tools Update..."
 }
-. "$KKResourcePath\Update-Tools.ps1" -SkipADB:$testADB -SkipAAPT2:$testAppt2 -SkipDotNetSDKRef:$testDotNetSDK
-
-Copy-Item -Path "$KKResourcePath\OC\Tools" -Destination $DetectedScriptsFolder\Tools -Recurse -Force
