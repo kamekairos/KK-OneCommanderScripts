@@ -10,7 +10,7 @@ elseif ($OCEXEDirPath.Contains("Program Files")) {
     $DetectedScriptsFolder = "$Env:LOCALAPPDATA\OneCommander\Resources\Scripts\"
 }
 else {
-$DetectedScriptsFolder = "$OCEXEDirPath\Resources\Scripts\"
+$DetectedScriptsFolder = "$OCEXEDirPath\UserResources\Scripts\"
 }
 $KKResourcePath = "$DetectedScriptsFolder\..\KK\"
 taskkill.exe /IM "adb.exe" /F
@@ -43,23 +43,24 @@ if ($null -eq $CustomVariables) {
 '@
 $RawProfileParsed = $RawProfileContent.Replace('$Path',$Path)
 
-if ($OCProfilePathContents -notcontains $RawProfileParsed) {
+if ($OCProfilePathContents -notmatch [regex]::Escape($RawProfileParsed)) {
     Add-Content -Path $OCProfilePath -Value ""
     Add-Content -Path $OCProfilePath -Value $RawProfileParsed
     }
 
 $OCProfileContent = @'
 . "$DetectedScriptsFolder\..\..\Settings\OneCommanderProfile.ps1"
-'@    
+'@
 $OCProfileContentParsed = $OCProfileContent.Replace('$DetectedScriptsFolder',$DetectedScriptsFolder)
 if ($PROFILE) {
-if ($PROFILE -notcontains $OCProfileContent) {
+if ($PROFILE -notmatch [regex]::Escape($OCProfileContentParsed)) {
     Add-Content -Path $PROFILE -Value $OCProfileContentParsed
     $PS7PROFILE = $PROFILE.Replace("WindowsPowerShell","PowerShell")
     Add-Content -Path $PS7PROFILE -Value $OCProfileContentParsed
 }
 else { # Profile already contains the content, do nothing.
     Write-Host "PowerShell profile already contains OneCommanderProfile.ps1 reference. No changes made."
+}
 }
 else {
     Write-Host "Windows PowerShell has no profile file set..Would you like to create one now? (Y/N)"
@@ -72,44 +73,7 @@ else {
       Write-Host "Profile Not Created!"
     }
 }
-}
 
-$AlteredScriptExecutorsJson = @'
-[
-  {
-    "Executable": "powershell.exe",
-    "HeaderTags": "#PS",
-    "Extensions": "ps1",
-    "Arguments": "-NoExit -File \"SCRIPT_PATH\""
-  },
-  {
-    "Executable": "pwsh.exe",
-    "HeaderTags": "#PS7,#PWSH",
-    "Extensions": "ps1",
-    "Arguments": "-NoExit -File \"SCRIPT_PATH\""
-  },
-  {
-    "Executable": "wt.exe",
-    "HeaderTags": "#WT",
-    "Extensions": "ps1",
-    "Arguments": "powershell -NoExit -File \"SCRIPT_PATH\""
-  },
-  {
-    "Executable": "python.exe",
-    "HeaderTags": "#PY,#PYTHON",
-    "Extensions": "py",
-    "Arguments": "\"SCRIPT_PATH\""
-  },
-  {
-    "Executable": "cmd.exe",
-    "HeaderTags": "#CMD",
-    "Extensions": "bat",
-    "Arguments": "/K \"SCRIPT_PATH\""
-  }
-]
-'@
-$FinSEJson = $AlteredScriptExecutorsJson.Replace('$OCProfilePath',$OCProfilePath)
-Set-Content "$OCSettingsPath\ScriptExecutors.json" -Value $FinSEJson -Force
 
 $UpdateTools = Read-Host -Prompt "Update Tool Utilities and Libraries Now? (Y/N)"
 

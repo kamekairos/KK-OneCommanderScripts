@@ -1,10 +1,6 @@
 #PS7
-try {
-    $wtContentJson = Get-Content -Path "$env:LOCALAPPDATA\Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState\settings.json" -ErrorAction Stop
-}
-catch {
-    $wtContentJson = Get-Content -Path "$env:LOCALAPPDATA\Packages\Microsoft.WindowsTerminalPreview_8wekyb3d8bbwe\LocalState\settings.json"
-}
+$wtContentJson = Get-Content -Path "$env:LOCALAPPDATA\Packages\Microsoft.WindowsTerminal*\LocalState\settings.json"
+
 $CurDir = $env:CURRENT_DIR
 $wtContentObj = $wtContentJson | ConvertFrom-Json
 $promptGuids = $wtContentObj.profiles.list.guid
@@ -14,11 +10,11 @@ Add-Type -AssemblyName System.Windows.Forms
 Add-Type -AssemblyName System.Drawing
 
 $mainForm = New-Object System.Windows.Forms.Form
-$mainForm.Size = New-Object System.Drawing.Size(500,850)
+$mainForm.Size = New-Object System.Drawing.Size(500,500)
 $mainForm.StartPosition = "CenterScreen"
 
 $listBox = New-Object System.Windows.Forms.ListBox
-$listBox.Size = New-Object System.Drawing.Size(425,650)
+$listBox.Size = New-Object System.Drawing.Size(425,350)
 $listBox.Location = New-Object System.Drawing.Size(25,25)
 foreach ($promptName in $promptNames) {
 $listBox.Items.Add($promptName) | Out-Null

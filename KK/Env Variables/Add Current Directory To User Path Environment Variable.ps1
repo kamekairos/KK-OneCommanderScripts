@@ -30,4 +30,6 @@ elseif ($TopBot -eq 0) {
 else {
     Write-Host "You can do it, pick Top or Bottom!"
 }
-New-ItemProperty @newParams | Out-Null
+if ($newParams) {
+    New-ItemProperty @newParams | Out-Null
+}
