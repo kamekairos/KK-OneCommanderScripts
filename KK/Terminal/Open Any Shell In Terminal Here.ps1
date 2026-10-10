@@ -1,4 +1,4 @@
-#PS7
+#PWSH
 $wtContentJson = Get-Content -Path "$env:LOCALAPPDATA\Packages\Microsoft.WindowsTerminal*\LocalState\settings.json"
 
 $CurDir = $env:CURRENT_DIR

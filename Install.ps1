@@ -22,7 +22,9 @@ taskkill.exe /IM "adb.exe" /F 2> $null
 
 # Deploy Script Packs
 Copy-Item -Path "$PSScriptRoot\KK\" -Destination $ScriptsPath -Recurse -Force
-Copy-Item -Path "$PSScriptRoot\OC\" -Destination "$ResourcesFolder\KK" -Recurse -Force
+Copy-Item -Path "$PSScriptRoot\OC\" -Destination "$ResourcesFolder\KK\" -Recurse -Force
+
+New-Item -Path $Path -ItemType Directory -Force | Out-Null
 
 # 4. Configure OneCommanderProfile.ps1
 $OCSettingsPath = Join-Path -Path $OCEXEDirPath -ChildPath "Settings"

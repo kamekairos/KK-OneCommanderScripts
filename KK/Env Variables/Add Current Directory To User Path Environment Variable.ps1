@@ -1,4 +1,4 @@
-#PS7
+#PWSH
 $Choices = [System.Management.Automation.Host.ChoiceDescription[]] @("&Top", "&Bottom" )
 $TopBot = $host.UI.PromptForChoice('Add Directory to the Top of the PATH ENV Var, or Bottom to Add Directory To End of PATH env Var', '', $Choices, 1)
 $CurDir = $env:CURRENT_DIR

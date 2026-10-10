@@ -1,3 +1,3 @@
-#PS7
+#PWSH
 $SelectedFiles = $Env:Selected_Files -split "`r`n"
 $SelectedFiles | ForEach-Object {cmd /K $_}

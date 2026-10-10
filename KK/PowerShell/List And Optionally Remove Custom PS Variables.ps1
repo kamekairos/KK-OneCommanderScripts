@@ -1,4 +1,4 @@
-#PS7
+#PWSH
 
 $CustomAddedVars = Import-Clixml "$env:OC_SCRIPTS_DIR\..\KK\Export\CusPSVars.xml"
 

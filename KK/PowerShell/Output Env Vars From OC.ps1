@@ -1,4 +1,4 @@
-#PS7
+#PWSH
 $Env:Current_Dir
 $Env:Current_Dir_Inactive
 $Env:Selected_Files

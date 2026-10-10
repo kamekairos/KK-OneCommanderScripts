@@ -1,4 +1,4 @@
-#PS7
+#PWSH
 Add-Type -AssemblyName System.Windows.Forms
 Add-Type -AssemblyName System.Drawing
 
