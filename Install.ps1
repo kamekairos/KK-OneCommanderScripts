@@ -1,103 +1,124 @@
 # Installs OC Scripts and PS Scripts that accompany the OC Scripts
 # Must Have OneCommander Running While Installing
 
-$DetectedScriptsFolder = ""
-$OCEXEDirPath = (Get-Item -Path (Get-Process OneCommander).Path).Directory.FullName
-if ($OCEXEDirPath.Contains("WindowsApp")) {
-    $DetectedScriptsFolder = "$Env:USERPROFILE\OneCommander\Resources\Scripts\"
+# 1. Locate OneCommander Process Safely
+$OCProcess = Get-Process -Name OneCommander -ErrorAction SilentlyContinue | Select-Object -First 1
+
+if (-not $OCProcess) {
+    Write-Error -Message "OneCommander is not running. Please launch OneCommander and rerun this script."
+    exit 1
 }
-elseif ($OCEXEDirPath.Contains("Program Files")) {
-    $DetectedScriptsFolder = "$Env:LOCALAPPDATA\OneCommander\Resources\Scripts\"
+
+$OCEXEDirPath = (Get-Item -Path $OCProcess.Path).Directory.FullName
+
+# 2. Establish Paths
+$ResourcesFolder = Join-Path -Path $OCEXEDirPath -ChildPath "UserResources"
+$ScriptsPath        = Join-Path -Path $ResourcesFolder -ChildPath "Scripts"
+$KKResourcePath        = Join-Path -Path $ResourcesFolder -ChildPath "KK"
+$Path                  = (Join-Path -Path $KKResourcePath -ChildPath "Export").TrimEnd('\')
+
+# 3. Kill ADB and Initialize Directory Tree
+taskkill.exe /IM "adb.exe" /F 2> $null
+
+# Deploy Script Packs
+Copy-Item -Path "$PSScriptRoot\KK\" -Destination $ScriptsPath -Recurse -Force
+Copy-Item -Path "$PSScriptRoot\OC\" -Destination "$ResourcesFolder\KK" -Recurse -Force
+
+# 4. Configure OneCommanderProfile.ps1
+$OCSettingsPath = Join-Path -Path $OCEXEDirPath -ChildPath "Settings"
+$OCProfilePath  = Join-Path -Path $OCSettingsPath -ChildPath "OneCommanderProfile.ps1"
+
+if (-not (Test-Path -Path $OCProfilePath)) {
+    New-Item -Path $OCProfilePath -ItemType File -Value "# This is the beginning of the OneCommanderProfile.ps1`r`n" -Force | Out-Null
 }
-else {
-$DetectedScriptsFolder = "$OCEXEDirPath\UserResources\Scripts\"
-}
-$KKResourcePath = "$DetectedScriptsFolder\..\KK\"
-taskkill.exe /IM "adb.exe" /F
-New-Item -Path $DetectedScriptsFolder -ItemType Directory -Force
-New-Item -Path $KKResourcePath -ItemType Directory -Force
-Copy-Item -Recurse -Path  "$PSScriptRoot\KK\" -Destination $DetectedScriptsFolder -Force
-Copy-Item -Recurse -Path "$PSScriptRoot\OC\*" -Destination $KKResourcePath -Force
-$Path = Join-Path $DetectedScriptsFolder "..\KK\Export\"
-New-Item -Path $Path -ItemType Directory -Force
-$OCSettingsPath = "$OCEXEDirPath\Settings\"
-$OCProfilePath = "$OCSettingsPath\OneCommanderProfile.ps1"
-if (!(Test-Path $OCProfilePath)) {
-    New-Item -Path $OCProfilePath -ItemType File -Value "#This is the begining of the OneCommanderProfile.ps1" -Force
-}
-else {
-$OCProfilePathContents = Get-Content -Path $OCProfilePath -Raw
-}
+
+$OCProfilePathContents = Get-Content -Path $OCProfilePath -Raw -ErrorAction SilentlyContinue
+
 $RawProfileContent = @'
 #KK-Integrations Script Pack For OneCommander Profile Code...don't remove this unless you want to reinstall after breaking the scripts(some).
-if (Test-Path -Path "$PathCusPSVars.xml") {
-$CustomVariables = Import-Clixml -Path "$PathCusPSVars.xml"
-$CustomVariables.GetEnumerator() | ForEach-Object -Process { New-Variable -Name $_.Name -Value $_.Value -Option AllScope -Scope Global -Force }
+if (Test-Path -Path "$Path\CusPSVars.xml") {
+    $CustomVariables = Import-Clixml -Path "$Path\CusPSVars.xml"
+    $CustomVariables.GetEnumerator() | ForEach-Object -Process { New-Variable -Name $_.Name -Value $_.Value -Option AllScope -Scope Global -Force }
 }
 if ($null -eq $CustomVariables) {
     $example = @{}
-    $example.Add("ExampleVarPath","C:\Windows\System32\drivers\etc\")
+    $example.Add("ExampleVarPath", "C:\Windows\System32\drivers\etc\")
     $example | Export-Clixml -Path "$Path\CusPSVars.xml" -Force
 }
-. "$PSSCriptRoot\..\Resources\KK\Invoke-SharedFunctions.ps1"
+. "$KKResourcePath\Invoke-SharedFunctions.ps1"
 '@
-$RawProfileParsed = $RawProfileContent.Replace('$Path',$Path)
+
+# Replace template path variables while maintaining runtime single-quote scoping
+$RawProfileParsed = $RawProfileContent.Replace('$Path', $Path).Replace('$KKResourcePath', $KKResourcePath)
 
 if ($OCProfilePathContents -notmatch [regex]::Escape($RawProfileParsed)) {
-    Add-Content -Path $OCProfilePath -Value ""
-    Add-Content -Path $OCProfilePath -Value $RawProfileParsed
-    }
+    Add-Content -Path $OCProfilePath -Value "`r`n$RawProfileParsed"
+}
 
+# 5. Link OneCommander Profile to Windows PowerShell & PowerShell 7+ Profiles
 $OCProfileContent = @'
-. "$DetectedScriptsFolder\..\..\Settings\OneCommanderProfile.ps1"
+. "$OCProfilePath"
 '@
-$OCProfileContentParsed = $OCProfileContent.Replace('$DetectedScriptsFolder',$DetectedScriptsFolder)
-if ($PROFILE) {
-if ($PROFILE -notmatch [regex]::Escape($OCProfileContentParsed)) {
-    Add-Content -Path $PROFILE -Value $OCProfileContentParsed
-    $PS7PROFILE = $PROFILE.Replace("WindowsPowerShell","PowerShell")
-    Add-Content -Path $PS7PROFILE -Value $OCProfileContentParsed
-}
-else { # Profile already contains the content, do nothing.
-    Write-Host "PowerShell profile already contains OneCommanderProfile.ps1 reference. No changes made."
-}
-}
-else {
-    Write-Host "Windows PowerShell has no profile file set..Would you like to create one now? (Y/N)"
-    $CreateProfile = Read-Host -Prompt "(Y/N)"
-    if ($CreateProfile -eq "Y") {
-        New-Item -Path $PROFILE -ItemType File -Force
-        Add-Content -Path $PROFILE -Value $OCProfileContentParsed
+$OCProfileContentParsed = $OCProfileContent.Replace('$OCProfilePath', $OCProfilePath)
+
+$ProfilesToUpdate = @(
+    $PROFILE, $PROFILE.Replace("WindowsPowerShell", "PowerShell")
+)
+
+foreach ($Prof in $ProfilesToUpdate) {
+    $ProfDir = Split-Path -Path $Prof -Parent
+    
+    if (-not (Test-Path -Path $ProfDir)) {
+        New-Item -Path $ProfDir -ItemType Directory -Force | Out-Null
     }
-    else {
-      Write-Host "Profile Not Created!"
+    
+    if (-not (Test-Path -Path $Prof)) {
+        New-Item -Path $Prof -ItemType File -Force | Out-Null
+    }
+
+    $ProfDiskContents = Get-Content -Path $Prof -Raw -ErrorAction SilentlyContinue
+    
+    if ($ProfDiskContents -notmatch [regex]::Escape($OCProfileContentParsed)) {
+        Add-Content -Path $Prof -Value "`r`n$OCProfileContentParsed"
+        Write-Host -Object "PowerShell profile updated: $Prof"
+    } else {
+        Write-Host -Object "PowerShell profile already contains OneCommanderProfile.ps1 reference: $Prof"
     }
 }
 
-
+# 6. Optional Tool Updates
 $UpdateTools = Read-Host -Prompt "Update Tool Utilities and Libraries Now? (Y/N)"
 
-if ($UpdateTools -eq "Y") {
+if ($UpdateTools -match "^[Yy]$") {
+    $ToolsDir = Join-Path -Path $KKResourcePath -ChildPath "Tools"
+    New-Item -Path $ToolsDir -ItemType Directory -Force | Out-Null
 
-New-Item -Path "$KKResourcePath\Tools" -ItemType Directory -Force
+    $adbCmd = Get-Command -Name adb -ErrorAction SilentlyContinue
+    
+    if ($adbCmd) {
+        Write-Host -Object "ADB Detected on System PATH... Skipping ADB Install"
+        $testADB = $true
+        Copy-Item -Path $adbCmd.Path -Destination (Join-Path -Path $ToolsDir -ChildPath "adb.exe") -Force
+    } else {
+        $testADB = $false
+    }
 
-if ($null -ne (Get-Command adb -ErrorAction SilentlyContinue).Path) {
-    Write-Host "ADB Detected on System PATH...Skipping ADB Install"
-    $testADB = $true
-    Copy-Item -Path (Get-Command adb).Path -Destination "$KKResourcePath\Tools\adb.exe" -Force
-}
-else {
-    $testADB = $false
-}
-if ($null -ne (Get-Command aapt2).Path) {
-    Write-Host "Aapt2 Detected on System PATH...Skipping Install"
-    $Script:testAapt2 = $true
-}
-else {
-    $Script:testAapt2 = $false
-}
-. "$KKResourcePath\Update-Tools.ps1" -SkipADB:$testADB -SkipAAPT2:$Script:testAapt2
-}
-else {
-  Write-Host "Skipping Tools Update..."
+    $aapt2Cmd = Get-Command -Name aapt2 -ErrorAction SilentlyContinue
+    
+    if ($aapt2Cmd) {
+        Write-Host -Object "Aapt2 Detected on System PATH... Skipping Install"
+        $Script:testAapt2 = $true
+    } else {
+        $Script:testAapt2 = $false
+    }
+
+    $UpdateToolsScript = Join-Path -Path $KKResourcePath -ChildPath "Update-Tools.ps1"
+    
+    if (Test-Path -Path $UpdateToolsScript) {
+        & $UpdateToolsScript -SkipADB $testADB -SkipAAPT2 $Script:testAapt2
+    } else {
+        Write-Warning -Message "Update-Tools.ps1 not found at: $UpdateToolsScript"
+    }
+} else {
+    Write-Host -Object "Skipping Tools Update..."
 }

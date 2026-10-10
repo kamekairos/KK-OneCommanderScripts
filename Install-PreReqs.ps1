@@ -1,36 +1,47 @@
 Add-Type -AssemblyName System.Windows.Forms
-if (!(Get-Command wt.exe -CommandType Application -ErrorAction SilentlyContinue)) {
-    $MBResults = & "$PSScriptRoot\OC\SharedScripts\Show-CustomDialog.ps1" -Title "Install Terminal?" -PromptText "Windows Terminal is NOT installed. Install Now?" -ButtonsType "YesNo" -IconType "Question"
-    if ($MBResults -eq [System.Windows.Forms.DialogResult]::Yes) {
-    winget install Microsoft.WindowsTerminal
-    }
-    else {
-        Write-Host "Not Installing Windows Terminal..."
-    }
-}
-else {
-    Write-Host "WT Already Installed"
+
+# Refresh process PATH from Registry
+function Update-SessionEnvironment {
+    $env:Path = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + 
+                [System.Environment]::GetEnvironmentVariable("Path", "User")
 }
 
-if (!(Get-Command -Name pwsh -CommandType Application -ErrorAction SilentlyContinue)) {
-    Write-Host "Are we In?" $env:Path
-    $MBResults2 = & "$PSScriptRoot\OC\SharedScripts\Show-CustomDialog.ps1" -Title "Install PS7+ ?" -PromptText "PS7+ is required for this script pack but it not installed...please select ok to install or cancell to quit installation of this script pack!" -ButtonsType "OkCancel" -IconType "Exclamation"
+# 1. Check Windows Terminal
+if (-not (Get-Command wt.exe -CommandType Application -ErrorAction SilentlyContinue)) {
+    $MBResults = & "$PSScriptRoot\OC\SharedScripts\Show-CustomDialog.ps1" `
+        -Title "Install Terminal?" `
+        -PromptText "Windows Terminal is NOT installed. Install Now?" `
+        -ButtonsType "YesNo" `
+        -IconType "Question"
+
+    if ($MBResults -eq [System.Windows.Forms.DialogResult]::Yes) {
+        winget install --id Microsoft.WindowsTerminal --exact --accept-source-agreements --accept-package-agreements
+        Update-SessionEnvironment
+    } else {
+        Write-Host "Skipping Windows Terminal installation."
+    }
+} else {
+    Write-Host "Windows Terminal already installed."
+}
+
+# 2. Check PowerShell 7+
+if (-not (Get-Command pwsh.exe -CommandType Application -ErrorAction SilentlyContinue)) {
+    $MBResults2 = & "$PSScriptRoot\OC\SharedScripts\Show-CustomDialog.ps1" `
+        -Title "Install PS7+ ?" `
+        -PromptText "PowerShell 7+ is required for this script pack. Select OK to install or Cancel to abort." `
+        -ButtonsType "OkCancel" `
+        -IconType "Exclamation"
+
     if ($MBResults2 -eq [System.Windows.Forms.DialogResult]::OK) {
-    winget install Microsoft.PowerShell
+        winget install --id Microsoft.PowerShell --exact --accept-source-agreements --accept-package-agreements
+        Update-SessionEnvironment
+    } else {
+        Write-Warning "Aborting Installation: PowerShell 7 is required."
+        exit 1
     }
-    else {
-        $env:Path
-        Write-Host "Aborting Installation!"
-        exit
-    }
+} else {
+    Write-Host "PowerShell 7 already installed."
 }
-else {
-    Write-Host "PowerShell 7 Already Installed"
-}
-$scriptroot = $PSScriptRoot
-powershell.exe -NoExit -NoProfile -Command {
-    param (
-    [string]
-    $ScriptRootPar
-    )
-    powershell.exe -NoExit -File "$ScriptRootPar\Install.ps1"} -Args $scriptroot
+
+# 3. Chain into Install.ps1
+& "$PSScriptRoot\Install.ps1"
