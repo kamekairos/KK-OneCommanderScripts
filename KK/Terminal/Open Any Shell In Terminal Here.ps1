@@ -1,5 +1,37 @@
 #PWSH
-$wtContentJson = Get-Content -Path "$env:LOCALAPPDATA\Packages\Microsoft.WindowsTerminal*\LocalState\settings.json"
+$wtSettingFiles = (Get-ChildItem -Recurse -Filter settings.json "$env:LOCALAPPDATA\Packages\*WindowsTerminal*", "$env:LOCALAPPDATA\Microsoft\Windows Terminal*") | Select-Object FullName
+
+if ($wtSettingFiles.Count -eq 0) {
+    Write-Host "No Windows Terminal settings.json file found."
+    exit
+}
+
+if ($wtSettingFiles.Count -gt 1) {
+    Write-Host "Multiple Windows Terminal settings.json files found. Please select one:"
+
+# Display numbered list
+for ($i = 0; $i -lt $wtSettingFiles.Count; $i++) {
+    Write-Host "$($i): $($wtSettingFiles[$i].FullName)"
+}
+
+# Build ChoiceDescription array
+$choices = @()
+foreach ($file in $wtSettingFiles) {
+    $choices += [System.Management.Automation.Host.ChoiceDescription]::new($file.FullName)
+}
+
+# Prompt user
+$selectedIndex = Read-Host "Pick A Number From Above"
+
+# Retrieve selected file
+$wtSettingFile = $wtSettingFiles[$selectedIndex].FullName
+
+}
+else {
+    $wtSettingFile = $wtSettingFiles[0].FullName
+}
+
+$wtContentJson = Get-Content -Raw -Path $wtSettingFile
 
 $CurDir = $env:CURRENT_DIR
 $wtContentObj = $wtContentJson | ConvertFrom-Json

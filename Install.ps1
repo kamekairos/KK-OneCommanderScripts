@@ -88,10 +88,15 @@ foreach ($Prof in $ProfilesToUpdate) {
     }
 }
 
+$ScriptExecutorsPath = Join-Path -Path $OCSettingsPath -ChildPath "ScriptExecutors.json"
+$ScriptExecutorsContent = Get-Content -Path $ScriptExecutorsPath -Raw -ErrorAction SilentlyContinue
+$SciptExecutorsContentParsed = $ScriptExecutorsContent.Replace('-NoProfile','')
+Set-Content -Path $ScriptExecutorsPath -Value $SciptExecutorsContentParsed -Force
 # 6. Optional Tool Updates
-$UpdateTools = Read-Host -Prompt "Update Tool Utilities and Libraries Now? (Y/N)"
+Write-Host "If your installing for the first time, you should update these tools, as that the only way to install them inititally without reinstalling everything!"
+$UpdateTools = $host.UI.PromptForChoice("Update Tool Utilities and Libraries Now? (Y/N)", "", @("&Yes", "&No"), 0)
 
-if ($UpdateTools -match "^[Yy]$") {
+if ($UpdateTools -eq 0) {
     $ToolsDir = Join-Path -Path $KKResourcePath -ChildPath "Tools"
     New-Item -Path $ToolsDir -ItemType Directory -Force | Out-Null
 

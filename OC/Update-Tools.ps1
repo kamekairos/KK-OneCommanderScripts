@@ -32,14 +32,22 @@ Copy-Item -Path "$env:TEMP\aapt2.exe" -Destination "$SRB4\Tools\aapt2.exe" -Forc
 else {
     Write-Host "Skipping AAPT2 Install..."
 }
+if (-not $SkipNETSDKRef) {
     Write-Host "Installing .NET SDK Reference..."
     $NETSDKRefUpdateUrl = "https://www.nuget.org/api/v2/package/Microsoft.Windows.SDK.NET.Ref"
 Invoke-WebRequest -Uri $NETSDKRefUpdateUrl -OutFile "$env:TEMP\Microsoft.Windows.SDK.NET.Ref.zip"
 Expand-Archive -Path "$env:TEMP\Microsoft.Windows.SDK.NET.Ref.zip" -DestinationPath "$env:TEMP\Microsoft.Windows.SDK.NET.Ref\" -Force
 Get-ChildItem -Path "$env:TEMP\Microsoft.Windows.SDK.NET.Ref\lib\net*\Microsoft.Windows.SDK.NET.dll" | Copy-Item -Destination "$PSScriptRoot\Tools\" -Force
 Get-ChildItem -Path "$env:TEMP\Microsoft.Windows.SDK.NET.Ref\lib\net*\WinRT.Runtime.dll" | Copy-Item -Destination "$PSScriptRoot\Tools\" -Force
-
-
-[System.Environment]::SetEnvironmentVariable("PATH", $env:PATH + ";$PSScriptRoot\Tools", [System.EnvironmentVariableTarget]::User)
+}
+else {
+    Write-Host "Skipping .NET SDK Reference Install..."
+}
+$SystemEnvRegKey = [Microsoft.Win32.Registry]::CurrentUser.OpenSubKey("Environment", $true)
+$PathRaw = $SystemEnvRegKey.GetValue('PATH', '', [Microsoft.Win32.RegistryValueOptions]::DoNotExpandEnvironmentNames)
+if ($PathRaw -notlike "*$PSScriptRoot\Tools*") {
+    $SystemEnvRegKey.SetValue("PATH", $PathRaw + ";$PSScriptRoot\Tools", [Microsoft.Win32.RegistryValueKind]::ExpandString)
+}
+$SystemEnvRegKey.Close()
 
 

@@ -27,9 +27,10 @@ if ($null -ne $listycandidate) {
 
 
 $mainform = New-Object System.Windows.Forms.Form
+$mainform.WindowState = 'Maximized'
 $mainform.AutoScaleMode = "Dpi"
 $mainform.AutoSize = $true
-$mainform.AutoSizeMode = [System.Windows.Forms.AutoSizeMode]::GrowOnly
+$mainform.AutoSizeMode = [System.Windows.Forms.AutoSizeMode]::GrowAndShrink
 $mainform.Text = "Rename With Clipboard History"
 $mainform.StartPosition = "CenterScreen"
 $mainform.FormBorderStyle = [System.Windows.Forms.FormBorderStyle]::Fixed3D
@@ -45,23 +46,25 @@ $mainform.Padding = $padding1
 $flowlayoutpanel1 = New-Object System.Windows.Forms.FlowLayoutPanel
 $flowlayoutpanel1.FlowDirection = [System.Windows.Forms.FlowDirection]::TopDown
 $flowlayoutpanel1.WrapContents = $false
-$flowlayoutpanel1.Dock = "Fill"
 $flowlayoutpanel1.AutoSize = $true
+$flowlayoutpanel1.AutoSizeMode = [System.Windows.Forms.AutoSizeMode]::GrowAndShrink
+$flowlayoutpanel1.Width = $mainform.ClientSize.Width - 2 * $mainform.Padding.Left
+$flowlayoutpanel1.Height = $mainform.ClientSize.Height - 2 * $mainform.Padding.Top
 
 
 $label = New-Object System.Windows.Forms.Label
 $label.Text = "Please Select A Clipboard Item And Hit Rename"
 $label.Dock = "Top"
 $label.TextAlign = [System.Drawing.ContentAlignment]::MiddleCenter
-$label.AutoSize = $true
-$label.ForeColor = [System.Drawing.Color]::FromArgb(0, 178, 255)
+$label.Padding = [System.Windows.Forms.Padding]::new(0,0,0,15)
+$label.ForeColor = [System.Drawing.Color]::FromArgb(255, 255, 255)
 
 $listbox = New-Object System.Windows.Forms.ListBox
 foreach($item in $listy) {
 $listbox.Items.Add($item)
 }
-$listbox.Height = (($listbox.ItemHeight + 5) * $listbox.Items.Count) + 100
 $listbox.HorizontalScrollbar = $true
+$listbox.AutoSize = $true
 $listbox.BackColor = [System.Drawing.Color]::FromArgb(57, 57, 57)
 $listbox.ForeColor = "White"
 $listbox.BorderStyle = [System.Windows.Forms.BorderStyle]::None
@@ -89,7 +92,16 @@ $mainform.Add_Resize({
 
 $button1.Add_Click({
     $SelectedClipItem = $listbox.SelectedItem.ToString()
-    Rename-Item -Path $SelectedFile -NewName $SelectedClipItem
+    $dirtyString = "$SelectedClipItem"
+
+    $invalidChars = [System.IO.Path]::GetInvalidFileNameChars()
+
+    $regexPattern = "[{0}]" -f [regex]::Escape(-join $invalidChars)
+
+    $safeString = [regex]::Replace($dirtyString, $regexPattern, '')
+
+    Rename-Item -Path $SelectedFile -NewName ("$safeString" + [System.IO.Path]::GetExtension($SelectedFile)) -Force
+
     $mainform.Close()
 })
 
